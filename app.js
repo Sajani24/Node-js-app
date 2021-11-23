@@ -9,41 +9,31 @@ const mysqlConfig = {
     host: "mysql_server",
     user: "toto",
     password: "toto",
-    database: "mysql-db"
+    database: "db"
   }
   
 let con = null
 
 const app = express()
 
-app.get('/', function (req, res) {
-  res.send('hello to my node js app')
-})
-
-app.get('/connect', function (req, res) {
-  con =  mysql.createConnection(mysqlConfig);
-  con.connect(function(err) {
+con.connect(function(err) {
     if (err) throw err;
-    res.send('connected')
+    console.log('connected');
   });
-})
 
-app.get('/create-table', function (req, res) {
-  con.connect(function(err) {
-    if (err) throw err;
-    const sql = `
-    CREATE TABLE IF NOT EXISTS numbers (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      number INT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )  ENGINE=INNODB;
-  `;
-    con.query(sql, function (err, result) {
-      if (err) throw err;
-      res.send("numbers table created");
-    });
-  });
-})
+const query = util.promisify(con.query).bind(con);
 
-app.listen(host, port);
-console.log(`Running on http://${host}:${port}`);
+http.createServer(async function (request, response) {
+
+    await query("UPDATE counterTable SET counter_count = counter_count+1 WHERE counter_id = 1");
+    const userCount = query('SELECT counter_count FROM counterTable WHERE counter_id = 1');
+
+    response.writeHead(200, {'Content-Type': 'text/plain'});
+
+    response.write('Hello to my node js app\n');
+
+    response.write(' I have been seen '+userCount+' times!\n');
+
+    response.end();
+
+}).listen(3000);
