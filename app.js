@@ -1,32 +1,45 @@
-var mysql = require('mysql');
+const express = require('express')
+const mysql = require('mysql2');
 
-var con = mysql.createConnection({
-    host: "localhost",
-    user: "yourusername",
-    password: "yourpassword"
-  });
-  
+const mysqlConfig = {
+  host: "mysql_server",
+  user: "melany",
+  password: "secret",
+  database: "mysql-db"
+}
+
+let con = null
+const app = express()
+
+app.get('/', function (req, res) {
+  res.send('hello to my node js app')
+})
+
+app.get('/connect', function (req, res) {
+  con =  mysql.createConnection(mysqlConfig);
   con.connect(function(err) {
     if (err) throw err;
-    console.log("Connected!");
+    res.send('CONNECTED')
   });
+})
 
-  function get_hit_count() {
-    retries = 5;
-    while(True)
-        try:
-            return cache.incr('hits')
-        except redis.exceptions.ConnectionError as exc:
-            if retries == 0:
-                raise exc
-            retries -= 1
-            time.sleep(0.5)
-  }
-  
-  @app.route('/')
+app.get('/create-table', function (req, res) {
+  con.connect(function(err) {
+    if (err) throw err;
+    const sql = `
+    CREATE TABLE IF NOT EXISTS numbers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      number INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )  ENGINE=INNODB;
+  `;
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      res.send("numbers table created");
+    });
+  });
+})
 
-  function hello(){
-    return "hello to my sample flask app, I have been seen"+ console.log.format(get_hit_count()) +"times\n"
-  }
-    
+app.listen(8080)
+console.log("Listening on port 8080")
     

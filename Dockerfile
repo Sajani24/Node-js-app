@@ -1,6 +1,7 @@
-FROM node:14
+FROM node:latest
 WORKDIR /code
 COPY * ./
 RUN npm install
-EXPOSE 5000
+COPY * ./
+EXPOSE 8080
 CMD ["npm", "start"]
